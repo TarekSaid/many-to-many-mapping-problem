@@ -130,4 +130,24 @@ public class UserTest {
         // and group 2 should not have any users
         assertThat(groupRepository.findById(g2.getId()).map(Group::getUsers).orElse(new HashSet<>())).isEmpty();
     }
+
+    @Test
+    public void deleteUserGroupWithId() {
+        // given that I have two groups
+        Group g1 = groupRepository.save(new Group().setGroupName("group 1"));
+        Group g2 = groupRepository.save(new Group().setGroupName("group 2"));
+
+        // and that I have a user with these 2 groups
+        User user = userRepository.save(new User().setName("user").addGroup(g1, true).addGroup(g2, false));
+
+        // when I delete user 2 from the group
+        user.getGroups().stream().filter(ug -> ug.getUser().equals(user) && ug.getGroup().equals(g2)).findFirst()
+            .ifPresent(ug -> userGroupRepository.deleteById(ug.getId()));
+
+        // then the user should only have 1 group
+        assertThat(userRepository.findById(user.getId()).map(User::getGroups).orElse(new HashSet<>())).containsOnly(new UserGroup().setUser(user).setGroup(g1));
+
+        // and group 2 should not have any users
+        assertThat(groupRepository.findById(g2.getId()).map(Group::getUsers).orElse(new HashSet<>())).isEmpty();
+    }
 }
