@@ -4,6 +4,7 @@ import com.example.entities.impl.Group;
 import com.example.entities.impl.User;
 import com.example.entities.joins.UserGroup;
 import com.example.repositories.GroupRepository;
+import com.example.repositories.UserGroupRepository;
 import com.example.repositories.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,9 @@ public class GroupTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private UserGroupRepository userGroupRepository;
 
     @Test
     public void addUsersToNewGroup() {
@@ -98,8 +102,30 @@ public class GroupTest {
         group.deleteUser(u2);
         group = groupRepository.save(group);
 
-        // then the group should have 1 user
+        // then the group should only have 1 user
         assertThat(group.getUsers()).containsOnly(new UserGroup().setGroup(group).setUser(u1));
+
+        // and user 2 should not have any groups
+        assertThat(userRepository.findById(u2.getId()).map(User::getGroups).orElse(new HashSet<>())).isEmpty();
+    }
+
+    @Test
+    public void deleteUserGroupFromGroup() {
+        // given that I have two users
+        User u1 = userRepository.save(new User().setName("user 1"));
+        User u2 = userRepository.save(new User().setName("user 2"));
+
+        // and that I have a group with these 2 users
+        Group group = groupRepository.save(new Group().setGroupName("test group").addUser(u1, true).addUser(u2, false));
+
+        // when I delete user 2 from the group
+        group.getUsers().stream().filter(ug -> ug.getGroup().equals(group) && ug.getUser().equals(u2)).findFirst().ifPresent(ug -> {
+            ug.getGroup().deleteUser(ug.getUser());
+            userGroupRepository.delete(ug);
+        });
+
+        // then the group should only have 1 user
+        assertThat(groupRepository.findById(group.getId()).map(Group::getUsers).orElse(new HashSet<>())).containsOnly(new UserGroup().setGroup(group).setUser(u1));
 
         // and user 2 should not have any groups
         assertThat(userRepository.findById(u2.getId()).map(User::getGroups).orElse(new HashSet<>())).isEmpty();
