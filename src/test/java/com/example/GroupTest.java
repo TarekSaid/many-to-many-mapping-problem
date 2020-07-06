@@ -33,7 +33,7 @@ public class GroupTest {
         List<User> users = userRepository.saveAll(Arrays.asList(u1, u2, u3));
 
         // and I create a new group with these 3 users
-        Group group = groupRepository.save(new Group().setGroupName("Test").setRole("something").addUser(u1, true).addUser(u2, true).addUser(u3, false));
+        Group group = groupRepository.save(new Group().setGroupName("Test").addUser(u1, true).addUser(u2, true).addUser(u3, false));
 
         // then the group should contain all 3 users
         assertThat(group.getUsers())
@@ -48,10 +48,8 @@ public class GroupTest {
     @Test
     public void addUserToExistingGroup() {
         // given that I have two users
-        User u1 = new User().setName("user 1");
-        User u2 = new User().setName("user 2");
-        u1 = userRepository.save(u1);
-        u2 = userRepository.save(u2);
+        User u1 = userRepository.save(new User().setName("user 1"));
+        User u2 = userRepository.save(new User().setName("user 2"));
 
         // and that I have a group with user 1
         Group group = groupRepository.save(new Group().setGroupName("test group").addUser(u1, true));
@@ -80,22 +78,20 @@ public class GroupTest {
 
         // when I update the UserGroup
         group.getUsers().stream().filter(ug -> ug.getUser().equals(user) && ug.getGroup().equals(group)).findFirst()
-            .ifPresent(ug -> ug.setImportant(true));
+            .ifPresent(ug -> ug.setActive(true));
         Group savedGroup = groupRepository.save(group);
 
         assertThat(savedGroup.getUsers()).filteredOn(ug -> ug.getUser().equals(user) && ug.getGroup().equals(savedGroup))
-            .extracting(UserGroup::isImportant).containsOnly(true);
+            .extracting(UserGroup::isActive).containsOnly(true);
     }
 
     @Test
     public void deleteUserFromGroup() {
         // given that I have two users
-        User u1 = new User().setName("user 1");
-        User u2 = new User().setName("user 2");
-        u1 = userRepository.save(u1);
-        u2 = userRepository.save(u2);
+        User u1 = userRepository.save(new User().setName("user 1"));
+        User u2 = userRepository.save(new User().setName("user 2"));
 
-        // and that I have a group with user 1
+        // and that I have a group with these 2 users
         Group group = groupRepository.save(new Group().setGroupName("test group").addUser(u1, true).addUser(u2, false));
 
         // when I delete user 2 from the group
@@ -105,7 +101,7 @@ public class GroupTest {
         // then the group should have 1 user
         assertThat(group.getUsers()).containsOnly(new UserGroup().setGroup(group).setUser(u1));
 
-        // and user 2 should not have the group
+        // and user 2 should not have any groups
         assertThat(userRepository.findById(u2.getId()).map(User::getGroups).orElse(new HashSet<>())).isEmpty();
     }
 }

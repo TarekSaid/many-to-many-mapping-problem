@@ -17,11 +17,8 @@ public class Group extends DomainEntity {
     @Column(name = "group_name")
     private String groupName;
 
-    @Column
-    private String role;
-
-    @OneToMany(mappedBy = "group", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<UserGroup> users = new HashSet<UserGroup>();
+    @OneToMany(mappedBy = "group", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private Set<UserGroup> users = new HashSet<>();
 
     public String getGroupName() {
         return groupName;
@@ -29,15 +26,6 @@ public class Group extends DomainEntity {
 
     public Group setGroupName(String groupName) {
         this.groupName = groupName;
-        return this;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public Group setRole(String role) {
-        this.role = role;
         return this;
     }
 
@@ -50,12 +38,12 @@ public class Group extends DomainEntity {
         return this;
     }
 
-    public Group addUser(User user, boolean important) {
-        UserGroup userGroup = new UserGroup().setGroup(this).setUser(user).setImportant(important);
+    public Group addUser(User user, boolean active) {
+        UserGroup userGroup = new UserGroup().setGroup(this).setUser(user).setActive(active);
 
         if (!users.contains(userGroup)) {
             users.add(userGroup);
-            user.addGroup(this, important);
+            user.addGroup(this, active);
         }
 
         return this;
@@ -89,7 +77,6 @@ public class Group extends DomainEntity {
     public String toString() {
         return new StringJoiner(", ", Group.class.getSimpleName() + "[", "]")
             .add("groupName='" + groupName + "'")
-            .add("role='" + role + "'")
             .toString();
     }
 }

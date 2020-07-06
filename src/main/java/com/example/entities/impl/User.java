@@ -17,12 +17,12 @@ public class User extends DomainEntity {
     @Column
     private String name;
 
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private Set<UserGroup> groups = new HashSet<>();
+
     public String getName() {
         return name;
     }
-
-    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<UserGroup> groups = new HashSet<>();
 
     public User setName(String name) {
         this.name = name;
@@ -38,12 +38,12 @@ public class User extends DomainEntity {
         return this;
     }
 
-    public User addGroup(Group group, boolean important) {
-        UserGroup userGroup = new UserGroup().setUser(this).setGroup(group).setImportant(important);
+    public User addGroup(Group group, boolean active) {
+        UserGroup userGroup = new UserGroup().setUser(this).setGroup(group).setActive(active);
 
         if (!groups.contains(userGroup)) {
             groups.add(userGroup);
-            group.addUser(this, important);
+            group.addUser(this, active);
         }
 
         return this;

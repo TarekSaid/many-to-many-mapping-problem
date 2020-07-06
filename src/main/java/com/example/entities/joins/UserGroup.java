@@ -12,7 +12,6 @@ import java.util.StringJoiner;
 
 @Entity
 @Table(name = "user_group")
-//@IdClass(UserGroupIdClass.class)
 @JsonIdentityInfo(generator = ObjectIdGenerators.UUIDGenerator.class)
 public class UserGroup implements Serializable {
     private static final long serialVersionUID = -1122736741031787995L;
@@ -21,19 +20,18 @@ public class UserGroup implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @Id
     @ManyToOne
-    @JoinColumn
+    @JoinColumn(name = "group_id")
     @JsonIdentityInfo(generator = ObjectIdGenerators.UUIDGenerator.class)
     private Group group;
 
-//    @Id
     @ManyToOne
-    @JoinColumn
+    @JoinColumn(name = "user_id")
     @JsonIdentityInfo(generator = ObjectIdGenerators.UUIDGenerator.class)
     private User user;
 
-    private boolean important;
+    @Column
+    private boolean active;
 
     public Long getId() {
         return id;
@@ -62,12 +60,12 @@ public class UserGroup implements Serializable {
         return this;
     }
 
-    public boolean isImportant() {
-        return important;
+    public boolean isActive() {
+        return active;
     }
 
-    public UserGroup setImportant(boolean important) {
-        this.important = important;
+    public UserGroup setActive(boolean active) {
+        this.active = active;
         return this;
     }
 
@@ -88,9 +86,10 @@ public class UserGroup implements Serializable {
     @Override
     public String toString() {
         return new StringJoiner(", ", UserGroup.class.getSimpleName() + "[", "]")
+            .add("id=" + id)
             .add("group=" + group)
             .add("user=" + user)
-            .add("important=" + important)
+            .add("active=" + active)
             .toString();
     }
 }
